@@ -1,7 +1,7 @@
+import { type ReactNode } from "react";
 import { useTheme } from "@/hooks/useTheme";
 import { FONTS } from "@/theme";
-
-export function ChartGrid({ children }: { children: React.ReactNode }) {
+export function ChartGrid({ children }: { children: ReactNode }) {
   return (
     <div style={{
       display: "grid",
@@ -14,7 +14,6 @@ export function ChartGrid({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
 export function LoadingScreen({ message = "Loading database..." }: { message?: string }) {
   const { theme: t } = useTheme();
   return (
@@ -24,7 +23,6 @@ export function LoadingScreen({ message = "Loading database..." }: { message?: s
     </div>
   );
 }
-
 export function ErrorScreen({ message }: { message: string }) {
   const { theme: t } = useTheme();
   return (

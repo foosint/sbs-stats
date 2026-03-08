@@ -2,10 +2,11 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, ReferenceLine, ResponsiveContainer,
 } from "recharts";
+import type { TooltipProps } from "recharts";
 import type { DailyDaySeries } from "@/types";
 import { useTheme } from "@/hooks/useTheme";
+import type { Theme } from "@/theme";
 import { FONTS } from "@/theme";
-
 interface Props {
   title: string;
   data: DailyDaySeries[];
@@ -13,17 +14,14 @@ interface Props {
   globalMedian: number;
   wfull: boolean;
 }
-
 function pivotData(series: DailyDaySeries[]): Record<string, number | null>[] {
   // X-axis runs 0–24. Hour 0 is always 0 (day start anchor).
   // DB hours 0–23 are mapped to display positions 1–24.
   const rows: Record<string, number | null>[] = [];
-
   // Anchor at x=0, all series = 0
   const anchor: Record<string, number | null> = { hour: 0 };
   for (const s of series) anchor[s.date] = 0;
   rows.push(anchor);
-
   // DB hour N → display position N+1
   for (let h = 0; h < 24; h++) {
     const row: Record<string, number | null> = { hour: h + 1 };
@@ -35,32 +33,33 @@ function pivotData(series: DailyDaySeries[]): Record<string, number | null>[] {
   }
   return rows;
 }
+type TooltipEntry = { dataKey: string; value: number };
 
 const CustomTooltip = ({
   active, payload, label, todayDate, t,
-}: {
-  active?: boolean;
-  payload?: Array<{ dataKey: string; value: number; color: string }>;
-  label?: number;
+}: TooltipProps<number, string> & {
   todayDate: string | undefined;
-  t: ReturnType<typeof useTheme>["theme"];
+  t: Theme;
 }) => {
   if (!active || !payload?.length) return null;
 
+  // Normalise Recharts payload to our simple shape, filtering out bad entries
+  const entries: TooltipEntry[] = payload
+    .filter((p) => typeof p.dataKey === "string" && typeof p.value === "number")
+    .map((p) => ({ dataKey: p.dataKey as string, value: p.value as number }));
+
   // Today first, then rest sorted newest→oldest
-  const sorted = [...payload].sort((a, b) => {
+  const sorted = [...entries].sort((a, b) => {
     if (a.dataKey === todayDate) return -1;
     if (b.dataKey === todayDate) return 1;
     return b.dataKey.localeCompare(a.dataKey);
   });
-
   // Split into columns of max 10 rows each
   const ROWS_PER_COL = 10;
   const columns: typeof sorted[] = [];
   for (let i = 0; i < sorted.length; i += ROWS_PER_COL) {
     columns.push(sorted.slice(i, i + ROWS_PER_COL));
   }
-
   return (
     <div style={{
       background: t.surface,
@@ -76,9 +75,8 @@ const CustomTooltip = ({
     }}>
       {/* Hour header */}
       <div style={{ color: t.textMuted, marginBottom: 5, fontSize: 10, fontWeight: 700, letterSpacing: "0.05em" }}>
-        {label === 0 ? "00:00" : `${String(label - 1).padStart(2,"0")}:00–${String(label - 1).padStart(2,"0")}:59`}
+        {label == null ? "" : label === 0 ? "00:00" : `${String(label - 1).padStart(2,"0")}:00–${String(label - 1).padStart(2,"0")}:59`}
       </div>
-
       {/* Columns */}
       <div style={{ display: "flex", gap: 12 }}>
         {columns.map((col, ci) => (
@@ -110,7 +108,6 @@ const CustomTooltip = ({
     </div>
   );
 };
-
 // Inject CSS once to elevate hovered chart card above siblings
 const STYLE_ID = "hourly-chart-hover-style";
 if (typeof document !== "undefined" && !document.getElementById(STYLE_ID)) {
@@ -119,7 +116,6 @@ if (typeof document !== "undefined" && !document.getElementById(STYLE_ID)) {
   s.textContent = `.hourly-card { position: relative; z-index: 1; } .hourly-card:hover { z-index: 100; }`;
   document.head.appendChild(s);
 }
-
 export function HourlyLineChart({ title, data, globalMax, globalMedian, wfull }: Props) {
   const { theme: t } = useTheme();
   const chartData = pivotData(data);
@@ -128,7 +124,6 @@ export function HourlyLineChart({ title, data, globalMax, globalMedian, wfull }:
   const total = pastSeries.length;
   const getOpacity = (index: number) =>
     total <= 1 ? 0.18 : 0.07 + (index / (total - 1)) * 0.35;
-
   return (
     <div className="hourly-card" style={{
       background: t.surface,
@@ -172,7 +167,7 @@ export function HourlyLineChart({ title, data, globalMax, globalMedian, wfull }:
           {pastSeries.map((s, i) => (
             <Line key={s.date} type="monotone" dataKey={s.date}
               stroke="#9ca3af" strokeWidth={1} strokeOpacity={getOpacity(i)}
-              dot={false} activeDot={{ r: 3, fill: "#808080", opacity: 0.6 }}
+              dot={false} activeDot={{ r: 3, fill: "#9ca3af", opacity: 0.6 }}
               connectNulls isAnimationActive={false}
             />
           ))}

@@ -4,7 +4,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { HourlyLineChart } from "@/components/HourlyLineChart";
 import { ChartGrid, LoadingScreen, ErrorScreen } from "@/components/Layout";
 import { buildMetrics } from "@/utils/metrics";
-import type { DailyRow, DailyDaySeries, GlobalStats, StatKey } from "@/types";
+import type { DailyRow, DailyDaySeries, GlobalStats, StatKey, Metric } from "@/types";
 import { FONTS } from "@/theme";
 
 const DAY_OPTIONS = [7, 14, 30, 60] as const;
@@ -18,16 +18,14 @@ export function HourlyPage() {
   const [globalStats, setGlobalStats] = useState<GlobalStats>({} as GlobalStats);
 
   useEffect(() => {
-    if (loadState === "ready") {
-      setGlobalStats(queryGlobalStats());
-    }
+    if (loadState === "ready") setGlobalStats(queryGlobalStats());
   }, [loadState, queryGlobalStats]);
 
   useEffect(() => {
     if (loadState === "ready") setRows(queryHourly(days));
   }, [loadState, days, queryHourly]);
 
-  const metrics = useMemo(() => buildMetrics(), []);
+  const metrics = useMemo<Metric[]>(() => buildMetrics(), []);
 
   const makeDataset = (key: StatKey): DailyDaySeries[] => {
     const map = new Map<string, DailyDaySeries>();
@@ -72,7 +70,7 @@ export function HourlyPage() {
       {loadState === "error" && <ErrorScreen message={error ?? "Unknown error"} />}
       {loadState === "ready" && (
         <ChartGrid>
-          {metrics.map((m) => (
+          {metrics.map((m: Metric) => (
             <HourlyLineChart
               key={m.key}
               title={m.label}

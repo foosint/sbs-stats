@@ -4,7 +4,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { MonthlyBarChart } from "@/components/MonthlyBarChart";
 import { ChartGrid, LoadingScreen, ErrorScreen } from "@/components/Layout";
 import { buildMetrics } from "@/utils/metrics";
-import type { MonthlyDataPoint, MonthlyRow, StatKey } from "@/types";
+import type { MonthlyDataPoint, MonthlyRow, StatKey, Metric } from "@/types";
 import { FONTS } from "@/theme";
 
 export function MonthlyPage() {
@@ -16,12 +16,12 @@ export function MonthlyPage() {
     if (loadState === "ready") setRows(queryMonthly());
   }, [loadState, queryMonthly]);
 
-  const metrics = useMemo(() => buildMetrics(), []);
+  const metrics = useMemo<Metric[]>(() => buildMetrics(), []);
 
   const makeDataset = (key: StatKey): MonthlyDataPoint[] =>
-    rows.map((d) => {
+    rows.map((d: MonthlyRow) => {
       const value = (d[key] as number) ?? 0;
-      const projected = d[`${key}_projected`];
+      const projected = d[`${key}_projected`] as number | undefined;
       return {
         date: d.date, value,
         gap: projected != null ? projected - value : undefined,
@@ -44,7 +44,6 @@ export function MonthlyPage() {
         </div>
       </div>
 
-      {/* Legend */}
       <div style={{ display: "flex", gap: 20, marginBottom: 20, fontFamily: FONTS.mono, fontSize: 11, flexWrap: "wrap" }}>
         <span style={{ color: t.primary }}>■ Past months</span>
         <span style={{ color: t.accent }}>■ Current (actual)</span>
@@ -55,8 +54,13 @@ export function MonthlyPage() {
       {loadState === "error" && <ErrorScreen message={error ?? "Unknown error"} />}
       {loadState === "ready" && (
         <ChartGrid>
-          {metrics.map((m) => (
-            <MonthlyBarChart key={m.key} title={m.label} data={makeDataset(m.key)} wfull={m.wfull ?? false} />
+          {metrics.map((m: Metric) => (
+            <MonthlyBarChart
+              key={m.key}
+              title={m.label}
+              data={makeDataset(m.key)}
+              wfull={m.wfull ?? false}
+            />
           ))}
         </ChartGrid>
       )}

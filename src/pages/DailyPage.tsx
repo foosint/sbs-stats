@@ -4,7 +4,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { DailyLineChart } from "@/components/DailyLineChart";
 import { ChartGrid, LoadingScreen, ErrorScreen } from "@/components/Layout";
 import { buildMetrics } from "@/utils/metrics";
-import type { DailyRow, DailyDataPoint, GlobalStats, StatKey } from "@/types";
+import type { DailyRow, DailyDataPoint, GlobalStats, StatKey, Metric } from "@/types";
 import { FONTS } from "@/theme";
 
 const DAY_OPTIONS = [7, 14, 30, 60] as const;
@@ -13,21 +13,19 @@ type DayOption = (typeof DAY_OPTIONS)[number];
 export function DailyPage() {
   const { theme: t } = useTheme();
   const { loadState, error, queryDaily, queryGlobalStats } = useDatabase();
-  const [days, setDays] = useState<DayOption>(60);
+  const [days, setDays] = useState<DayOption>(30);
   const [rows, setRows] = useState<DailyRow[]>([]);
   const [globalStats, setGlobalStats] = useState<GlobalStats>({} as GlobalStats);
 
   useEffect(() => {
-    if (loadState === "ready") {
-      setGlobalStats(queryGlobalStats());
-    }
+    if (loadState === "ready") setGlobalStats(queryGlobalStats());
   }, [loadState, queryGlobalStats]);
 
   useEffect(() => {
     if (loadState === "ready") setRows(queryDaily(days));
   }, [loadState, days, queryDaily]);
 
-  const metrics = useMemo(() => buildMetrics(), []);
+  const metrics = useMemo<Metric[]>(() => buildMetrics(), []);
 
   const makeDataset = (key: StatKey): DailyDataPoint[] =>
     rows.map((d) => ({ date: d.date, value: (d[key] as number) ?? 0, is_today: d.is_today }));
@@ -61,7 +59,7 @@ export function DailyPage() {
       {loadState === "error" && <ErrorScreen message={error ?? "Unknown error"} />}
       {loadState === "ready" && (
         <ChartGrid>
-          {metrics.map((m) => (
+          {metrics.map((m: Metric) => (
             <DailyLineChart
               key={m.key}
               title={m.label}
