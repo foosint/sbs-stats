@@ -64,7 +64,7 @@ function AppInner() {
               color: t.text,
               letterSpacing: "0.06em",
             }}>
-              SBS BATTLEFIELD STATISTICS
+              SBS STATISTICS
             </span>
           </div>
 
