@@ -1,0 +1,44 @@
+name: Update Database
+
+on:
+  schedule:
+    # GitHub Actions minimum interval is 5 minutes.
+    # Note: GH Actions may delay scheduled jobs by a few minutes under load.
+    - cron: "*/10 * * * *"
+  workflow_dispatch: # allow manual trigger from GitHub UI
+
+jobs:
+  update-db:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed to commit back to repo
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Run data fetcher
+        env:
+          # Add any secrets your fetcher needs, e.g.:
+          API_KEY: ${{ secrets.SBS_STATS }}
+          DB_PATH: data/sbs.db
+        run: |
+          python scripts/fetch_and_update.py
+
+      - name: Commit updated DB (if changed)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/sbs.db
+          # Only commit if the file actually changed
+          git diff --staged --quiet || git commit -m "chore: update sbs.db [skip ci]"
+          git push

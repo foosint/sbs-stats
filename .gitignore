@@ -1,0 +1,11 @@
+node_modules/
+dist/
+tmp/
+
+# Local env only — never commit this
+.env.local
+.env.*.local
+
+# .env.production IS committed (no secrets, just the public DB URL)
+
+public/data/
