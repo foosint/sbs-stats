@@ -6,6 +6,11 @@ import { TARGET_IDS } from "@/types";
 const DB_URL = import.meta.env.VITE_DB_URL ?? "/data/sbs.db";
 const SQL_WASM_URL = "https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.12.0/sql-wasm.wasm";
 
+// Returns today's date string (YYYY-MM-DD) in Kyiv local time
+function getKyivDateString(): string {
+  return new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Kyiv" });
+}
+
 function loadSqlJsScript(): Promise<void> {
   return new Promise((resolve, reject) => {
     if ((window as unknown as Record<string, unknown>)["initSqlJs"]) {
@@ -110,7 +115,7 @@ export function useDatabase() {
       if (!db) return [];
       const availableCols = getTableColumns(db, "daily_stats");
       const statCols = buildStatColumns(availableCols);
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = getKyivDateString();
 
       const sql = `
         SELECT
@@ -143,7 +148,7 @@ export function useDatabase() {
       if (!db) return [];
       const availableCols = getTableColumns(db, "daily_stats");
       const statCols = buildStatColumns(availableCols);
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = getKyivDateString();
 
       const sql = `
         SELECT
@@ -211,10 +216,11 @@ export function useDatabase() {
     if (!db) return [];
     const availableCols = getTableColumns(db, "monthly_stats");
     const statCols = buildStatColumns(availableCols);
-    const today = new Date();
-    const currentMonth = today.toISOString().slice(0, 7);
-    const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-    const dayOfMonth = today.getDate();
+    const kyivDateStr = getKyivDateString();               // YYYY-MM-DD in Kyiv time
+    const currentMonth = kyivDateStr.slice(0, 7);          // YYYY-MM
+    const dayOfMonth = parseInt(kyivDateStr.slice(8, 10)); // DD
+    const [y, m] = currentMonth.split("-").map(Number);
+    const daysInMonth = new Date(y, m, 0).getDate();
 
     const sql = `
       SELECT date, ${statCols}
