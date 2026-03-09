@@ -20,13 +20,14 @@ export function DailyPage({ refreshKey }: DailyPageProps) {
   const [days, setDays] = useState<DayOption>(30);
   const [rows, setRows] = useState<DailyRow[]>([]);
   const [globalStats, setGlobalStats] = useState<GlobalStats>({} as GlobalStats);
+  const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
     if (loadState === "ready") setGlobalStats(queryGlobalStats());
   }, [loadState, queryGlobalStats, refreshKey]);
 
   useEffect(() => {
-    if (loadState === "ready") setRows(queryDaily(days));
+    if (loadState === "ready") { setRows(queryDaily(days)); setHasData(true); }
   }, [loadState, days, queryDaily, refreshKey]);
 
   const metrics = useMemo<Metric[]>(() => buildMetrics(), []);
@@ -59,9 +60,9 @@ export function DailyPage({ refreshKey }: DailyPageProps) {
           ))}
         </div>
       </div>
-      {loadState === "loading" && <LoadingScreen />}
+      {loadState === "loading" && !hasData && <LoadingScreen />}
       {loadState === "error" && <ErrorScreen message={error ?? "Unknown error"} />}
-      {loadState === "ready" && (
+      {(loadState === "ready" || hasData) && (
         <ChartGrid>
           {metrics.map((m: Metric) => (
             <DailyLineChart

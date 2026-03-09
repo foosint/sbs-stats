@@ -15,9 +15,10 @@ export function MonthlyPage({ refreshKey }: MonthlyPageProps) {
   const { theme: t } = useTheme();
   const { loadState, error, queryMonthly } = useDatabaseContext();
   const [rows, setRows] = useState<MonthlyRow[]>([]);
+  const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
-    if (loadState === "ready") setRows(queryMonthly());
+    if (loadState === "ready") { setRows(queryMonthly()); setHasData(true); }
   }, [loadState, queryMonthly, refreshKey]);
 
   const metrics = useMemo<Metric[]>(() => buildMetrics(), []);
@@ -54,9 +55,9 @@ export function MonthlyPage({ refreshKey }: MonthlyPageProps) {
         <span style={{ color: t.accent + "88" }}>■ Projected</span>
       </div>
 
-      {loadState === "loading" && <LoadingScreen />}
+      {loadState === "loading" && !hasData && <LoadingScreen />}
       {loadState === "error" && <ErrorScreen message={error ?? "Unknown error"} />}
-      {loadState === "ready" && (
+      {(loadState === "ready" || hasData) && (
         <ChartGrid>
           {metrics.map((m: Metric) => (
             <MonthlyBarChart

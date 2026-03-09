@@ -20,13 +20,14 @@ export function HourlyPage({ refreshKey }: HourlyPageProps) {
   const [days, setDays] = useState<DayOption>(60);
   const [rows, setRows] = useState<DailyRow[]>([]);
   const [globalStats, setGlobalStats] = useState<GlobalStats>({} as GlobalStats);
+  const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
     if (loadState === "ready") setGlobalStats(queryGlobalStats());
   }, [loadState, queryGlobalStats, refreshKey]);
 
   useEffect(() => {
-    if (loadState === "ready") setRows(queryHourly(days));
+    if (loadState === "ready") { setRows(queryHourly(days)); setHasData(true); }
   }, [loadState, days, queryHourly, refreshKey]);
 
   const metrics = useMemo<Metric[]>(() => buildMetrics(), []);
@@ -70,9 +71,9 @@ export function HourlyPage({ refreshKey }: HourlyPageProps) {
           ))}
         </div>
       </div>
-      {loadState === "loading" && <LoadingScreen />}
+      {loadState === "loading" && !hasData && <LoadingScreen />}
       {loadState === "error" && <ErrorScreen message={error ?? "Unknown error"} />}
-      {loadState === "ready" && (
+      {(loadState === "ready" || hasData) && (
         <ChartGrid>
           {metrics.map((m: Metric) => (
             <HourlyLineChart
