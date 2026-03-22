@@ -1,16 +1,20 @@
 // ─── Target classification IDs ────────────────────────────────────────────────
-export const TARGET_IDS = [1, 2, 5, 7, 18, 21, 22, 25] as const;
+export const TARGET_IDS = [1, 2, 3, 4, 5, 32, 7, 18, 25, 29, 21, 22] as const;
 export type TargetId = (typeof TARGET_IDS)[number];
 
 export const TARGET_LABELS: Record<TargetId, string> = {
   1: "Tanks",
-  2: "APCs / IFVs / ACVs",
-  5: "MLRS / SAMs / AA Guns",
-  7: "Vehicles",
-  18: "Motorcycles & Buggies",
+  2: "APCs, IFVs, ACVs",
+  3: "Guns, howitzers",
+  4: "Self-propelled artillery",
+  5: "MLRS (was MLRS, SAMs, AA Guns before around March 20)",
+  7: "Light, Heavy, Special-purpose vehicles",
+  18: "Motorcycles and military buggies",
   21: "Shelters",
   22: "Dugouts",
-  25: "Enemy UAVs",
+  25: "Enemy Wings",
+  29: "Shaheds and Gerberas (since around March 20)",
+  32: "SAMs, SPADs (split from MRLS around March 20)",
 };
 
 // ─── Base numeric stat keys ───────────────────────────────────────────────────
