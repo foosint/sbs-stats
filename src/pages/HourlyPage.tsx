@@ -56,6 +56,7 @@ export function HourlyPage({ refreshKey }: HourlyPageProps) {
           <p style={{ fontFamily: FONTS.mono, fontSize: 11, color: t.textMuted, marginTop: 3 }}>
             Each line = one day · X-axis = hour · MAX/MED based on all data · {new Date().toDateString()}
           </p>
+          <p style={{ fontFamily: FONTS.mono, fontSize: 11, color: t.bgImportant, marginTop: 3}}>The red line is based on preliminary figures for today and is subject to changes (which will then be reflected in the corresponding gray line on the next day)</p>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           {DAY_OPTIONS.map((d) => (

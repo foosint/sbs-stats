@@ -44,9 +44,8 @@ export function DailyPage({ refreshKey }: DailyPageProps) {
           </h1>
           <p style={{ fontFamily: FONTS.mono, fontSize: 11, color: t.textMuted, marginTop: 3 }}>
             Latest reported value per day · MAX/MED based on all data · {new Date().toDateString()}
-            <br/>
-            <span style={{ color: t.textImportant, background: t.bgImportant, display: "inline-block", marginTop: 2, padding: 4, borderRadius: 4}}>Since March 20, subsequent changes made up to 24 hours later are also being recorded.</span>
           </p>
+           <p style={{ fontFamily: FONTS.mono, fontSize: 11, color: t.bgImportant, marginTop: 3}}>Today's figures are preliminary and will be updated over the course of the next day.</p>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           {DAY_OPTIONS.map((d) => (
