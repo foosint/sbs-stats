@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { useDatabaseContext } from "@/context/useDatabaseContext";
 import { useTheme } from "@/hooks/useTheme";
-import { DailyLineChart } from "@/components/DailyLineChart";
+// import { DailyLineChart } from "@/components/DailyLineChart";
+import { DailyBarChart } from "@/components/DailyBarChart";
 import { ChartGrid, LoadingScreen, ErrorScreen } from "@/components/Layout";
 import { buildMetrics } from "@/utils/metrics";
 import type { DailyRow, DailyDataPoint, GlobalStats, StatKey, Metric } from "@/types";
@@ -66,7 +67,7 @@ export function DailyPage({ refreshKey }: DailyPageProps) {
       {(loadState === "ready" || hasData) && (
         <ChartGrid>
           {metrics.map((m: Metric) => (
-            <DailyLineChart
+            <DailyBarChart
               key={m.key}
               title={m.label}
               data={makeDataset(m.key)}
@@ -74,6 +75,14 @@ export function DailyPage({ refreshKey }: DailyPageProps) {
               globalMedian={globalStats[m.key]?.median ?? 0}
               wfull={m.wfull ?? false}
             />
+            // <DailyLineChart
+            //   key={m.key}
+            //   title={m.label}
+            //   data={makeDataset(m.key)}
+            //   globalMax={globalStats[m.key]?.max ?? 0}
+            //   globalMedian={globalStats[m.key]?.median ?? 0}
+            //   wfull={m.wfull ?? false}
+            // />
           ))}
         </ChartGrid>
       )}
