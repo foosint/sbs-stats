@@ -1,5 +1,5 @@
 // ─── Target classification IDs ────────────────────────────────────────────────
-export const TARGET_IDS = [1, 2, 3, 4, 5, 32, 7, 18, 25, 30, 31, 21, 22, 42] as const;
+export const TARGET_IDS = [1, 2, 3, 4, 5, 32, 7, 18, 25, 30, 31, 21, 22, 42, 20, 13, 17, 24, 26] as const;
 export type TargetId = (typeof TARGET_IDS)[number];
 
 export const TARGET_LABELS: Record<TargetId, string> = {
@@ -16,7 +16,12 @@ export const TARGET_LABELS: Record<TargetId, string> = {
   30: "Shaheds (since around March 20)",
   31: "Gerberas (since around March 20)",
   32: "SAMs, SPADs (split from MRLS around March 20)",
-  42: "Ships"
+  42: "Ships",
+  20: "Ammo, fuel and equipment depots",
+  13: "Antennas",
+  17: "Tactical infrastructure",
+  24: "Enemy copter drones",
+  26: "Enemy unmanned robotic complexes"
 };
 
 // ─── Base numeric stat keys ───────────────────────────────────────────────────
