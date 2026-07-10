@@ -253,10 +253,11 @@ export function useDatabase() {
     const [y, m] = currentMonth.split("-").map(Number);
     const daysInMonth = new Date(y, m, 0).getDate();
 
+    // query only the last 12 months
     const sql = `
       SELECT date, ${statCols}
       FROM monthly_stats
-      ORDER BY date ASC
+      ORDER BY date ASC LIMIT 12
     `;
 
     return queryRows<Record<string, unknown>>(db, sql).map((row) => {
