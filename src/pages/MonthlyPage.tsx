@@ -24,7 +24,7 @@ export function MonthlyPage({ refreshKey }: MonthlyPageProps) {
   const metrics = useMemo<Metric[]>(() => buildMetrics(), []);
 
   const makeDataset = (key: StatKey): MonthlyDataPoint[] =>
-    rows.reverse().map((d: MonthlyRow) => {
+    rows.map((d: MonthlyRow) => {
       const value = (d[key] as number) ?? 0;
       const projected = d[`${key}_projected`] as number | undefined;
       return {
@@ -63,7 +63,7 @@ export function MonthlyPage({ refreshKey }: MonthlyPageProps) {
             <MonthlyBarChart
               key={m.key}
               title={m.label}
-              data={makeDataset(m.key)}
+              data={makeDataset(m.key).reverse()}
               wfull={m.wfull ?? false}
             />
           ))}
