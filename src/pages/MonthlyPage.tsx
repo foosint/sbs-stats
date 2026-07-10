@@ -24,7 +24,7 @@ export function MonthlyPage({ refreshKey }: MonthlyPageProps) {
   const metrics = useMemo<Metric[]>(() => buildMetrics(), []);
 
   const makeDataset = (key: StatKey): MonthlyDataPoint[] =>
-    rows.map((d: MonthlyRow) => {
+    rows.reverse().map((d: MonthlyRow) => {
       const value = (d[key] as number) ?? 0;
       const projected = d[`${key}_projected`] as number | undefined;
       return {
