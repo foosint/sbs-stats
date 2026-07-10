@@ -257,7 +257,7 @@ export function useDatabase() {
     const sql = `
       SELECT date, ${statCols}
       FROM monthly_stats
-      ORDER BY date DESC LIMIT 11
+      ORDER BY date DESC LIMIT 12
     `;
 
     return queryRows<Record<string, unknown>>(db, sql).map((row) => {
