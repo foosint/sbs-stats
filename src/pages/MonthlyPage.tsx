@@ -45,6 +45,8 @@ export function MonthlyPage({ refreshKey }: MonthlyPageProps) {
           </h1>
           <p style={{ fontFamily: FONTS.mono, fontSize: 11, color: t.textMuted, marginTop: 3 }}>
             Monthly aggregates · current month shows end-of-month projection
+            <br/>
+            Projection uses completed days only; today's partial data is excluded.
           </p>
         </div>
       </div>
