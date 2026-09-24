@@ -245,20 +245,45 @@ export function useDatabase() {
   // ── Monthly ──────────────────────────────────────────────────────────────────
   const queryMonthly = useCallback((): MonthlyRow[] => {
     if (!db) return [];
+
     const availableCols = getTableColumns(db, "monthly_stats");
     const statCols = buildStatColumns(availableCols);
     const kyivDateStr = getKyivDateString();               // YYYY-MM-DD in Kyiv time
     const currentMonth = kyivDateStr.slice(0, 7);          // YYYY-MM
     const dayOfMonth = parseInt(kyivDateStr.slice(8, 10)); // DD
+    const completedDays = Math.max(dayOfMonth - 1, 0);
     const [y, m] = currentMonth.split("-").map(Number);
     const daysInMonth = new Date(y, m, 0).getDate();
 
-    // query only the last 12 months
+    // Get today's partial data so it can be excluded from the monthly total.
+    const todaySql = `
+      SELECT ${statCols}
+      FROM daily_stats
+      WHERE date = '${kyivDateStr}'
+      ORDER BY hour DESC
+      LIMIT 1
+    `;
+    const todayRows = queryRows<Record<string, unknown>>(db, todaySql);
+    const todayRow = todayRows[0];
+
+    // Query only the last 12 months.
     const sql = `
       SELECT date, ${statCols}
       FROM monthly_stats
       ORDER BY date DESC LIMIT 12
     `;
+
+    const statKeys: StatKey[] = [
+      "personnel_killed",
+      "personnel_wounded",
+      "total_targets_hit",
+      "total_targets_destroyed",
+      "total_personnel_casualties",
+      ...TARGET_IDS.flatMap((id) => [
+        `hit_${id}` as StatKey,
+        `destroyed_${id}` as StatKey,
+      ]),
+    ];
 
     return queryRows<Record<string, unknown>>(db, sql).map((row) => {
       const dateStr = String(row["date"]).slice(0, 7);
@@ -267,26 +292,33 @@ export function useDatabase() {
       const typedRow: MonthlyRow = {
         date: dateStr,
         is_current_month: isCurrentMonth,
-        projection_day: isCurrentMonth ? dayOfMonth : null,
+        projection_day: isCurrentMonth && completedDays > 0 ? completedDays : null,
         projection_days_in_month: isCurrentMonth ? daysInMonth : null,
         ...(row as Record<string, number>),
       };
 
-      if (isCurrentMonth) {
-        const multiplier = daysInMonth / dayOfMonth;
-        const statKeys: StatKey[] = [
-          "personnel_killed", "personnel_wounded",
-          "total_targets_hit", "total_targets_destroyed",
-          "total_personnel_casualties",
-          ...TARGET_IDS.flatMap((id) => [`hit_${id}` as StatKey, `destroyed_${id}` as StatKey]),
-        ];
+      if (isCurrentMonth && completedDays > 0) {
+        const multiplier = daysInMonth / completedDays;
+
         for (const key of statKeys) {
           const raw = row[key];
+          const today = todayRow?.[key];
+
           if (typeof raw === "number") {
-            typedRow[`${key}_projected`] = Math.round(raw * multiplier);
+            const todayValue = typeof today === "number" ? today : 0;
+            const completedMonthValue = Math.max(0, raw - todayValue);
+
+            // Replace the displayed current-month value with full days only.
+            typedRow[key] = completedMonthValue;
+
+            // Project the completed-day total to the end of the month.
+            typedRow[`${key}_projected`] = Math.round(
+              completedMonthValue * multiplier
+            );
           }
         }
       }
+
       return typedRow;
     });
   }, [db]);
