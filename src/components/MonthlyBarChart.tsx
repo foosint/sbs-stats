@@ -66,6 +66,15 @@ export function MonthlyBarChart({ title, data, wfull }: Props) {
       <div style={{ fontFamily: FONTS.display, fontWeight: 700, fontSize: 12, color: t.textMuted, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 14 }}>
         {title}
       </div>
+      <div style={{
+      fontFamily: FONTS.mono,
+      fontSize: 10,
+      color: t.textMuted,
+      marginTop: -8,
+      marginBottom: 14,
+    }}>
+      Projection uses completed days only; today's partial data is excluded.
+    </div>
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={data} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
           <CartesianGrid strokeDasharray="2 4" stroke={t.chartGrid} />
