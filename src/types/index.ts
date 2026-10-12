@@ -1,5 +1,5 @@
 // ─── Target classification IDs ────────────────────────────────────────────────
-export const TARGET_IDS = [1, 2, 3, 4, 5, 32, 7, 18, 25, 30, 31, 21, 22, 42, 43, 20, 13, 17, 24, 26, 29, 40] as const;
+export const TARGET_IDS = [1, 2, 3, 4, 5, 32, 7, 18, 25, 30, 31, 21, 22, 42, 43, 20, 13, 17, 24, 26, 29, 41] as const;
 export type TargetId = (typeof TARGET_IDS)[number];
 
 export const TARGET_LABELS: Record<TargetId, string> = {
@@ -24,7 +24,7 @@ export const TARGET_LABELS: Record<TargetId, string> = {
   24: "Enemy copter drones",
   26: "Enemy unmanned robotic complexes",
 	29: "Helicopter",
-	40: "Planes"
+	41: "Aircraft"
 };
 
 // ─── Base numeric stat keys ───────────────────────────────────────────────────
