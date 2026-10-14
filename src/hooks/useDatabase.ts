@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Database } from "sql.js";
-import type { DailyRow, MonthlyRow, StatKey, LoadState } from "@/types";
+import type { DailyRow, DailyDataPoint, MonthlyRow, StatKey, LoadState } from "@/types";
 import { TARGET_IDS } from "@/types";
 
 const DB_URL = import.meta.env.VITE_DB_URL ?? "/data/sbs.db";
@@ -323,9 +323,48 @@ export function useDatabase() {
     });
   }, [db]);
 
+  // ── Top10: 10 highest daily values (latest hour per date) per stat key ───────
+  const queryTop10 = useCallback((): Record<StatKey, DailyDataPoint[]> => {
+    if (!db) return {} as Record<StatKey, DailyDataPoint[]>;
+
+    const availableCols = getTableColumns(db, "daily_stats");
+    const todayStr = getKyivDateString();
+    const allStatKeys: StatKey[] = [
+      "personnel_killed", "personnel_wounded",
+      "total_targets_hit", "total_targets_destroyed",
+      "total_personnel_casualties",
+      ...TARGET_IDS.flatMap((id) => [`hit_${id}` as StatKey, `destroyed_${id}` as StatKey]),
+    ];
+
+    const result = {} as Record<StatKey, DailyDataPoint[]>;
+    for (const key of allStatKeys) {
+      if (!availableCols.includes(key)) { result[key] = []; continue; }
+
+      // Rank only the latest hour of each date (= the day's final value)
+      const sql = `
+        SELECT
+          d.date AS date,
+          CASE WHEN d.date = '${todayStr}' THEN 1 ELSE 0 END AS is_today,
+          COALESCE(d.${key}, 0) AS value
+        FROM daily_stats d
+        JOIN (SELECT date, MAX(hour) AS hour FROM daily_stats GROUP BY date) l
+          ON d.date = l.date AND d.hour = l.hour
+        WHERE COALESCE(d.${key}, 0) > 0
+        ORDER BY value DESC, d.date DESC
+        LIMIT 10
+      `;
+
+      result[key] = queryRows<DailyDataPoint>(db, sql).map((row) => ({
+        ...row,
+        is_today: (row.is_today as unknown) === 1,
+      }));
+    }
+    return result;
+  }, [db]);
+
   return {
     loadState, error,
-    queryDaily, queryHourly, queryMonthly, queryGlobalStats,
+    queryDaily, queryHourly, queryMonthly, queryGlobalStats, queryTop10,
     refresh, lastRefreshed, refreshCount,
   };
 }

@@ -93,7 +93,7 @@ export interface Metric {
 }
 
 // ─── App state ────────────────────────────────────────────────────────────────
-export type Page = "daily" | "hourly" | "monthly";
+export type Page = "daily" | "hourly" | "monthly" | "top10";
 export type LoadState = "idle" | "loading" | "ready" | "error";
 
 // ─── Global stats (max + median across all data) ──────────────────────────────

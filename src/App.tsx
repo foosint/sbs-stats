@@ -5,6 +5,7 @@ import { useDatabaseContext } from "@/context/useDatabaseContext";
 import { DailyPage } from "@/pages/DailyPage";
 import { HourlyPage } from "@/pages/HourlyPage";
 import { MonthlyPage } from "@/pages/MonthlyPage";
+import { Top10Page } from "@/pages/Top10Page";
 import { REFRESH_INTERVAL_MS } from "@/hooks/useDatabase";
 import type { Page } from "@/types";
 import { FONTS, GLOBAL_CSS } from "@/theme";
@@ -199,6 +200,7 @@ function AppInner() {
             {navBtn("hourly", "HOURLY")}
             {navBtn("daily", "DAILY")}
             {navBtn("monthly", "MONTHLY")}
+            {navBtn("top10", "TOP10")}
 
             {/* Refresh indicator */}
             <RefreshIndicator
@@ -233,6 +235,7 @@ function AppInner() {
           {page === "daily"   && <DailyPage refreshKey={refreshCount} />}
           {page === "hourly"  && <HourlyPage refreshKey={refreshCount} />}
           {page === "monthly" && <MonthlyPage refreshKey={refreshCount} />}
+          {page === "top10"   && <Top10Page refreshKey={refreshCount} />}
         </main>
       </div>
     </>
