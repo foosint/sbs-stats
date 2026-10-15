@@ -76,6 +76,8 @@ function buildStatColumns(availableCols: string[]): string {
     "total_targets_hit",
     "total_targets_destroyed",
     "total_personnel_casualties",
+    "flights_strike",
+    "flights_recon",
   ];
   const dynamicCols = TARGET_IDS.flatMap((id) => [
     `hit_${id}` as StatKey,
@@ -209,6 +211,7 @@ export function useDatabase() {
       "personnel_killed", "personnel_wounded",
       "total_targets_hit", "total_targets_destroyed",
       "total_personnel_casualties",
+      "flights_strike", "flights_recon",
       ...TARGET_IDS.flatMap((id) => [`hit_${id}` as StatKey, `destroyed_${id}` as StatKey]),
     ];
 
@@ -279,6 +282,8 @@ export function useDatabase() {
       "total_targets_hit",
       "total_targets_destroyed",
       "total_personnel_casualties",
+      "flights_strike",
+      "flights_recon",
       ...TARGET_IDS.flatMap((id) => [
         `hit_${id}` as StatKey,
         `destroyed_${id}` as StatKey,
@@ -333,6 +338,7 @@ export function useDatabase() {
       "personnel_killed", "personnel_wounded",
       "total_targets_hit", "total_targets_destroyed",
       "total_personnel_casualties",
+      "flights_strike", "flights_recon",
       ...TARGET_IDS.flatMap((id) => [`hit_${id}` as StatKey, `destroyed_${id}` as StatKey]),
     ];
 

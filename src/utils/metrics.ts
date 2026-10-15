@@ -8,6 +8,8 @@ export function buildMetrics(): Metric[] {
     { key: "personnel_wounded", label: "Personnel Wounded" },
     { key: "total_targets_hit", label: "Targets Hit" },
     { key: "total_targets_destroyed", label: "Targets Destroyed" },
+    { key: "flights_strike", label: "Strike Flights" },
+    { key: "flights_recon", label: "Recon Flights" },
   ];
 
   const targetMetrics: Metric[] = TARGET_IDS.flatMap((id) => [
