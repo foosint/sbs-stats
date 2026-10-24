@@ -328,6 +328,95 @@ export function useDatabase() {
     });
   }, [db]);
 
+  // ── Subdivisions: list of distinct subdivision names ─────────────────────────
+  const querySubdivisions = useCallback((): string[] => {
+    if (!db) return [];
+    if (!getTableColumns(db, "subdivision_monthly_stats").length) return [];
+
+    const sql = `
+      SELECT DISTINCT subdivision
+      FROM subdivision_monthly_stats
+      WHERE subdivision IS NOT NULL AND subdivision != ''
+      ORDER BY subdivision ASC
+    `;
+    return queryRows<{ subdivision: string }>(db, sql).map((row) => String(row.subdivision));
+  }, [db]);
+
+  // ── Subdivision monthly: last 12 months for one subdivision (no projection) ──
+  const querySubdivisionMonthly = useCallback(
+    (subdivision: string): MonthlyRow[] => {
+      if (!db) return [];
+
+      const availableCols = getTableColumns(db, "subdivision_monthly_stats");
+      if (!availableCols.length) return [];
+      const statCols = buildStatColumns(availableCols);
+      const currentMonth = getKyivDateString().slice(0, 7);
+      const escaped = subdivision.replace(/'/g, "''");
+
+      const sql = `
+        SELECT date, ${statCols}
+        FROM subdivision_monthly_stats
+        WHERE subdivision = '${escaped}'
+        ORDER BY date DESC LIMIT 12
+      `;
+
+      return queryRows<Record<string, unknown>>(db, sql).map((row) => {
+        const dateStr = String(row["date"]).slice(0, 7);
+        return {
+          ...(row as Record<string, number>),
+          date: dateStr,
+          is_current_month: dateStr === currentMonth,
+          projection_day: null,
+          projection_days_in_month: null,
+        } as MonthlyRow;
+      });
+    },
+    [db]
+  );
+
+  // ── Subdivision months: distinct months (YYYY-MM), newest first ──────────────
+  const querySubdivisionMonths = useCallback((): string[] => {
+    if (!db) return [];
+    if (!getTableColumns(db, "subdivision_monthly_stats").length) return [];
+
+    const sql = `
+      SELECT DISTINCT substr(date, 1, 7) AS month
+      FROM subdivision_monthly_stats
+      ORDER BY month DESC LIMIT 12
+    `;
+    return queryRows<{ month: string }>(db, sql).map((row) => String(row.month));
+  }, [db]);
+
+  // ── Subdivision ranking: per-subdivision totals for one month (or all time) ──
+  const querySubdivisionRanking = useCallback(
+    (month: string | null): Array<{ subdivision: string } & Record<StatKey, number>> => {
+      if (!db) return [];
+
+      const availableCols = getTableColumns(db, "subdivision_monthly_stats");
+      if (!availableCols.length) return [];
+      const allStatKeys: StatKey[] = [
+        "personnel_killed", "personnel_wounded",
+        "total_targets_hit", "total_targets_destroyed",
+        "total_personnel_casualties",
+        "flights_strike", "flights_recon",
+        ...TARGET_IDS.flatMap((id) => [`hit_${id}` as StatKey, `destroyed_${id}` as StatKey]),
+      ];
+      const statCols = allStatKeys
+        .map((col) => availableCols.includes(col) ? `SUM(COALESCE(${col}, 0)) AS ${col}` : `0 AS ${col}`)
+        .join(", ");
+      const where = month ? `AND substr(date, 1, 7) = '${month.replace(/'/g, "''")}'` : "";
+
+      const sql = `
+        SELECT subdivision, ${statCols}
+        FROM subdivision_monthly_stats
+        WHERE subdivision IS NOT NULL AND subdivision != '' ${where}
+        GROUP BY subdivision
+      `;
+      return queryRows<{ subdivision: string } & Record<StatKey, number>>(db, sql);
+    },
+    [db]
+  );
+
   // ── Top10: 10 highest daily values (latest hour per date) per stat key ───────
   const queryTop10 = useCallback((): Record<StatKey, DailyDataPoint[]> => {
     if (!db) return {} as Record<StatKey, DailyDataPoint[]>;
@@ -371,6 +460,7 @@ export function useDatabase() {
   return {
     loadState, error,
     queryDaily, queryHourly, queryMonthly, queryGlobalStats, queryTop10,
+    querySubdivisions, querySubdivisionMonthly, querySubdivisionMonths, querySubdivisionRanking,
     refresh, lastRefreshed, refreshCount,
   };
 }
