@@ -13,12 +13,14 @@
   },
   "dependencies": {
     "html-to-image": "^1.11.11",
+    "plotly.js-gl3d-dist-min": "^4.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "recharts": "^2.12.7"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
+    "@types/plotly.js": "^3.0.15",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^7.13.1",

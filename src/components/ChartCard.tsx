@@ -11,6 +11,9 @@ interface Props {
   titleGap?: number;        // space below the title row (4 when a legend row follows, 14 otherwise)
   exportContext?: string;   // prefixed to the title in the PNG only, e.g. a subdivision name
   className?: string;
+  // Runs before the PNG capture; returns an undo. WebGL charts use it to swap their canvas
+  // (which html-to-image reads back blank) for a static snapshot.
+  beforeExport?: () => Promise<() => void>;
   children: ReactNode;
 }
 
@@ -25,7 +28,7 @@ const excludeFromExport = (node: HTMLElement) =>
 
 // Card container shared by all charts, with a download-as-PNG button in the top-right corner.
 // The PNG gets an extra caption (source + data time, optional context) that only shows while exporting.
-export function ChartCard({ title, wfull, titleGap = 4, exportContext, className, children }: Props) {
+export function ChartCard({ title, wfull, titleGap = 4, exportContext, className, beforeExport, children }: Props) {
   const { theme: t } = useTheme();
   const { dataCollectedAt } = useDatabaseContext();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -37,7 +40,9 @@ export function ChartCard({ title, wfull, titleGap = 4, exportContext, className
     if (!card || busy) return;
     setBusy(true);
     card.classList.add("exporting");
+    let undoPrepare: (() => void) | undefined;
     try {
+      undoPrepare = await beforeExport?.();
       // Let the export-only caption render before capturing
       await new Promise((r) => requestAnimationFrame(() => r(null)));
       // Keep the caption on one line: shrink its font until it fits narrow (phone) cards
@@ -58,6 +63,7 @@ export function ChartCard({ title, wfull, titleGap = 4, exportContext, className
     } catch (err) {
       console.error("Chart export failed", err);
     } finally {
+      undoPrepare?.();
       card.classList.remove("exporting");
       if (captionRef.current) captionRef.current.style.fontSize = `${CAPTION_FONT_PX}px`;
       setBusy(false);
